@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest
+import Utilities
 
 
 class DataProcessor:
@@ -27,7 +28,7 @@ class DataProcessor:
         return new_X
 
     def feature_selection_kBest(self):
-        self.value_columns = SelectKBest(k=10).fit_transform(self.value_columns, self.y)
+        self.value_columns = SelectKBest(k=Utilities.SELECTKBEST).fit_transform(self.value_columns, self.y)
 
     def __init__(self, file_name):
         self.x, self.y = self.data_load("data/" + file_name)
