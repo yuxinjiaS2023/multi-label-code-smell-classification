@@ -1,5 +1,6 @@
 from scipy.io import arff
 import pandas as pd
+import csv
 from sklearn import preprocessing
 import numpy as np
 from sklearn.impute import SimpleImputer
@@ -10,7 +11,7 @@ import Utilities
 
 class DataProcessor:
     def data_load(self, file_name):
-        data = pd.read_csv(file_name, header=0, na_values='?')
+        data = pd.read_csv(file_name, header=0, na_values='?', quotechar="'", skipinitialspace=True)
         self.df = pd.DataFrame(data)
         # x = self.process_data(df)
         x = self.df.iloc[:, :-1]

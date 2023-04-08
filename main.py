@@ -12,8 +12,13 @@ def print_hi(name):
 
 def simple_processer_example():
     # give the appropriate file name for input data
-    new_dp = data_processor.DataProcessor("data-class.csv", True)
-    print(new_dp.x)
+    new_dp = data_processor.DataProcessor("long-method.csv", class_level=False)
+    # dp.x stores the processed and feature selected data
+    # dp.value_columns vs dp.label_columns
+    # dp.y stores the target
+    print(new_dp.label_columns)
+    print(new_dp.value_columns)
+    print(new_dp.x) # X= label_columns + value_columns
     print(new_dp.y)
 
 
