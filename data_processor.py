@@ -30,14 +30,19 @@ class DataProcessor:
     def feature_selection_kBest(self):
         self.value_columns = SelectKBest(k=Utilities.SELECTKBEST).fit_transform(self.value_columns, self.y)
 
-    def __init__(self, file_name):
+    # If class_level is true, then the data is class level data, otherwise it is method level data
+    def __init__(self, file_name, class_level):
         self.x, self.y = self.data_load("data/" + file_name)
         # The label columns are the columns that are not numeric features, thus cannot be used for training. So we need
         # to separate them, the value columns are the numeric features that we can use for training.
         # self.x stores the concatenation of label columns and value columns, it cannot be directly used in training or
         # feature selection.
-        self.label_columns = self.x[["IDType", "project", "package", "complextype"]]
-        self.value_columns = self.x.drop(columns=["IDType", "project", "package", "complextype"])
+        if class_level:
+            self.label_columns = self.x[Utilities.CLASSLEVELLABEL]
+            self.value_columns = self.x.drop(columns=Utilities.CLASSLEVELLABEL)
+        else:
+            self.label_columns = self.x[Utilities.METHODLEVELLABEL]
+            self.value_columns = self.x.drop(columns=Utilities.METHODLEVELLABEL)
         self.value_columns = self.process_data()
         self.feature_selection_kBest()
         # Update x with the processed and feature selected value columns

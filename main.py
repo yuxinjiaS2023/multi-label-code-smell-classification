@@ -12,7 +12,7 @@ def print_hi(name):
 
 def simple_processer_example():
     # give the appropriate file name for input data
-    new_dp = data_processor.DataProcessor("data-class.csv")
+    new_dp = data_processor.DataProcessor("data-class.csv", True)
     print(new_dp.x)
     print(new_dp.y)
 
