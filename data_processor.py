@@ -24,7 +24,7 @@ class DataProcessor:
     def process_data(self):
         self.value_columns[:] = SimpleImputer(strategy="median").fit_transform(self.value_columns)
         # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
-        return self.value_columns
+        return self.value_columns.values
 
     def update_x(self):
         self.x = pd.concat([pd.DataFrame(self.label_columns), pd.DataFrame(self.value_columns)], axis=1).values
@@ -43,7 +43,8 @@ class DataProcessor:
             self.value_columns = np.delete(self.x, Utilities.METHODLEVELLABEL_INDEX, axis=1)
 
     # If class_level is true, then the data is class level data, otherwise it is method level data
-    def __init__(self, file_name, class_level):
+    def __init__(self, file_name, class_level, feature_selection):
+        self.feature_selection = feature_selection
         self.x, self.y = self.data_load("data/" + file_name)
         # print(self.x)
         self.class_level = class_level
@@ -58,7 +59,8 @@ class DataProcessor:
             self.label_columns = self.x[Utilities.METHODLEVELLABEL]
             self.value_columns = self.x.drop(columns=Utilities.METHODLEVELLABEL)
         self.value_columns = self.process_data()
-        self.feature_selection_kBest()
+        if self.feature_selection:
+            self.feature_selection_kBest()
         # print(self.value_columns)
         # Update x with the processed and feature selected value columns
         self.update_x()

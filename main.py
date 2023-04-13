@@ -90,15 +90,15 @@ def label_combination(dp1, dp2, model_name):
 
 def simple_processor_example():
     # give the appropriate file name for input data
-    dp_gc = data_processor.DataProcessor("god-class.csv", class_level=True)
-    dp_dc = data_processor.DataProcessor("data-class.csv", class_level=True)
-    dp_lm = data_processor.DataProcessor("long-method.csv", class_level=False)
-    dp_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False)
+    dp_gc = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_dc = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_lm = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
     # dp.x stores the processed and feature selected data
     # dp.value_columns vs dp.label_columns
     # dp.y stores the target
-    method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "SVM")
-    class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "SVM")
+    method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "CART")
+    class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "CART")
     print(class_mld_lc_y)
 
 
