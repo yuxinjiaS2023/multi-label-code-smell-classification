@@ -97,9 +97,9 @@ def simple_processor_example():
     # dp.x stores the processed and feature selected data
     # dp.value_columns vs dp.label_columns
     # dp.y stores the target
-    method_mld_x, method_mld_y = label_combination(dp_lm, dp_fe, "SVM")
-    class_mld_x, class_mld_y = label_combination(dp_gc, dp_dc, "SVM")
-    print(class_mld_y)
+    method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "SVM")
+    class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "SVM")
+    print(class_mld_lc_y)
 
 
 # Press the green button in the gutter to run the script.
