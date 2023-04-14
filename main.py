@@ -19,7 +19,6 @@ def extract_common_rows(arr1, arr2):
     # Extract the values in the first column of each array
     col1_arr1 = arr1[:, 0]
     col1_arr2 = arr2[:, 0]
-
     # Find the common values and their corresponding row indices
     common_values = np.intersect1d(col1_arr1, col1_arr2)
     common_rows_arr1 = np.where(np.isin(col1_arr1, common_values))[0]
@@ -44,11 +43,19 @@ def common_instances_combine(dp1, dp2):
     new_dp.y = np.array(combine_common_rows(dp1.y, dp2.y, common_rows_arr1, common_rows_arr2))
     new_dp.x = new_dp.x[common_rows_arr1]
     new_dp.value_columns = new_dp.value_columns[common_rows_arr1]
-    # print(new_dp.y.shape)
-    # print(new_dp.x.shape)
     new_dp.update_value_label_columns_index()
     return new_dp
 
+def common_instances_chain(dp1, dp2):
+    new_dp = copy.deepcopy(dp1)
+    common_rows_arr1, common_rows_arr2 = extract_common_rows(dp1.x, dp2.x)
+    new_dp.y = dp2.y[common_rows_arr2]
+    #print("dp1", dp1.y[common_rows_arr1])
+    new_dp.x = np.concatenate((new_dp.x[common_rows_arr1], dp1.y[common_rows_arr1].reshape(-1, 1)), axis=1)
+    # new_dp.value_columns = new_dp.value_columns[common_rows_arr1]
+    new_dp.value_columns = new_dp.value_columns[common_rows_arr1]
+    new_dp.update_value_label_columns_index()
+    return new_dp
 
 # This picks up on
 def uncommon_instances_combine(dp1, dp2, model_name):
@@ -72,23 +79,22 @@ def uncommon_instances_combine(dp1, dp2, model_name):
     predicted_uncommon_y2 = clf2.predict(uncommon_values1)
     uncommon_y1 = dp1.y[~select_x1]
     new_y1 = [int(f"{a}{b}", 2) for a, b in zip(uncommon_y1, predicted_uncommon_y2)]
-    # print(uncommon_values2.shape)
     return uncommon_values1, uncommon_values2, new_y1, new_y2
-
 
 def label_combination(dp1, dp2, model_name):
     # Common instances:
     new_dp = common_instances_combine(dp1, dp2)
     # Uncommon instances:
     uncommon_values1, uncommon_values2, uncommon_y1, uncommon_y2 = uncommon_instances_combine(dp1, dp2, model_name)
-    # print(new_dp.y)
-    # print(new_dp.value_columns.shape)
     x = np.concatenate((new_dp.value_columns, uncommon_values1, uncommon_values2), axis=0)
     y = np.concatenate((new_dp.y, uncommon_y1, uncommon_y2), axis=0)
     return x, y
 
+def label_chain(dp1, dp2):
+    new_dp = common_instances_chain(dp1, dp2)
+    return new_dp.value_columns, new_dp.y
 
-def simple_processor_example():
+def simple_processor_example(method):
     # give the appropriate file name for input data
     dp_gc = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
     dp_dc = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
@@ -97,14 +103,18 @@ def simple_processor_example():
     # dp.x stores the processed and feature selected data
     # dp.value_columns vs dp.label_columns
     # dp.y stores the target
-    method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "CART")
-    class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "CART")
-    print(class_mld_lc_y)
-
+    if method == "Classifier Chain":
+        method_mld_cc_x, method_mld_cc_y = label_chain(dp_lm, dp_fe)
+        class_mld_cc_x, class_mld_cc_y = label_chain(dp_gc, dp_dc)
+        print("x", method_mld_cc_x)
+        print("y", method_mld_cc_y)
+    elif method == "Label Combination":
+        method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "CART")
+        class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "CART")
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    simple_processor_example()
+    simple_processor_example("Classifier Chain")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
