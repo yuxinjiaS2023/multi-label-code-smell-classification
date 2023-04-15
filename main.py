@@ -6,6 +6,9 @@ import data_processor
 import numpy as np
 import copy
 import Utilities
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import RFE
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
 def print_hi(name):
@@ -94,6 +97,44 @@ def label_chain(dp1, dp2):
     new_dp = common_instances_chain(dp1, dp2)
     return new_dp.value_columns, new_dp.y
 
+
+def train(model_name,x,y,feature_selection=False):
+    clf = Utilities.get_model(model_name)
+    model = clf
+    print(x)
+    print(y)
+    #   split the set into training and testing
+    x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
+    if feature_selection:
+        model = RFE(estimator=clf, step=1)
+    model.fit(x_train, y_train)
+    print("================================================")
+    print("\nThe testing set results are: ")
+    print("DT accuracy " + str(accuracy_score(y_test, model.predict(x_test))))
+    print("DT f1_score " + str(f1_score(y_test, model.predict(x_test),average='weighted')))
+    print("DT precision " + str(precision_score(y_test, model.predict(x_test),average='weighted')))
+    print("DT recall " + str(recall_score(y_test, model.predict(x_test),average='weighted')))
+    '''
+    #   =====
+    #   CROSS VALIDATION
+    #   =====
+    # want to use cross-validation to check different models using the same small data pool (grid-search)
+    #
+    depths = np.arange(10, 21)  # something between 10 and 21, exclusive on 21
+    num_leafs = [1, 5, 10, 20, 50, 100]  # number of leaves
+    #  we want to tune based on criteria, max_depth, and min_samples_leaf
+    param_grid = {'criterion': ['gini', 'entropy'], 'max_depth': depths, 'min_samples_leaf': num_leafs}
+    # create another DT
+    new_tree_clf = DecisionTreeClassifier()
+    # do a grid search where you find all the possible combinations of the GS based on their grid search parameters
+    grid_search = GridSearchCV(new_tree_clf, param_grid, cv=10, scoring="accuracy", return_train_score=True)
+    grid_search.fit(x_train, y_train)
+    # this is the best estimator for the grid
+    best_model = grid_search.best_estimator_
+    '''
+    
+    
+
 def simple_processor_example(method):
     # give the appropriate file name for input data
     dp_gc = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
@@ -111,10 +152,13 @@ def simple_processor_example(method):
     elif method == "Label Combination":
         method_mld_lc_x, method_mld_lc_y = label_combination(dp_lm, dp_fe, "CART")
         class_mld_lc_x, class_mld_lc_y = label_combination(dp_gc, dp_dc, "CART")
+        return method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
     simple_processor_example("Classifier Chain")
+    method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination")
+    train("RF", class_mld_lc_x, class_mld_lc_y, False)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

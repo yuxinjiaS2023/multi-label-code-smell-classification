@@ -51,6 +51,8 @@ def get_model(model):
         return DecisionTreeClassifier()
     elif model == "RF":
         return RandomForestClassifier()
+    elif model == "DT":
+        return DecisionTreeClassifier()
     else:
         print("such model does not exist")
         exit()
