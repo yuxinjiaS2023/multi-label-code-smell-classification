@@ -1,5 +1,3 @@
-package src;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Random;
@@ -7,6 +5,8 @@ import java.util.Random;
 // Importing required classes
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.J48;
+import weka.classifiers.meta.Bagging;
+import weka.classifiers.meta.AdaBoostM1;
 import weka.core.Instances;
 
 public class J48Classifier {
@@ -18,7 +18,7 @@ public class J48Classifier {
             J48 j48Classifier = new J48();
 
             // Dataset path
-            String dataset = "./data/exported/god_class_fe.arff";
+            String dataset = "./data/exported/method_mld_no_fe_lc.arff";
 
             // Create bufferedreader to read the dataset
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataset));
@@ -32,10 +32,20 @@ public class J48Classifier {
             // Evaluation
             Evaluation evaluation = new Evaluation(datasetInstances);
 
+            // Bagging
+            Bagging bagger = new Bagging();
+            bagger.setClassifier(j48Classifier);
+            bagger.setSeed(1);
+
+            // Boosting
+            AdaBoostM1 adaBoost = new AdaBoostM1();
+            adaBoost.setClassifier(j48Classifier);
+
             // Cross Validate Model with 10 folds
-            evaluation.crossValidateModel(j48Classifier, datasetInstances, 10, new Random(1));
+            evaluation.crossValidateModel(bagger, datasetInstances, 10, new Random(1));
             System.out.println(evaluation.toSummaryString(
                     "\nResults", false));
+            System.out.println(evaluation.toClassDetailsString());
         }
 
         // Catch block to check for rexceptions
