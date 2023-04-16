@@ -137,7 +137,32 @@ def train(model_name,x,y,feature_selection=False):
 
 def dump_arff_file(x, y, file_name):
     # Dump the dataset to an ARFF file
-    data = np.concatenate((x, y.reshape(-1, 1)), axis=1)
+    y_int = y.astype(int)
+    # print(x.shape[1])
+    attributes = []
+    for i in range(x.shape[1]):
+        attributes.append(("attrs" + str(i), 'NUMERIC'))
+    attributes.append(("class", 'NOMINAL'))
+    print(attributes)
+    y_str = []
+    for i in range(y.shape[0]):
+        if y_int[i] == 3:
+            y_str.append("Y3")
+        elif y_int[i] == 2:
+            y_str.append("Y2")
+        elif y_int[i] == 1:
+            y_str.append("Y1")
+        else:
+            y_str.append("Y0")
+    y_str = np.array(y_str)
+    data = np.concatenate((x, y_str.reshape(-1, 1)), axis=1)
+    data = data.tolist()
+    for row in data:
+        for i in range(len(row)):
+            try:
+                row[i] = float(row[i])
+            except ValueError:
+                pass
     arff.dump(file_name, data, relation='my_relation')
     
 
@@ -190,8 +215,8 @@ def simple_processor_example(method, dump=False):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    simple_processor_example("Classifier Chain", dump=False)
-    method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=False)
+    simple_processor_example("Classifier Chain", dump=True)
+    method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
     train("RF", class_mld_lc_x, class_mld_lc_y, False)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
