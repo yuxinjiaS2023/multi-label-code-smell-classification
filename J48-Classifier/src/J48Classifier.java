@@ -1,3 +1,5 @@
+package src;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Random;
@@ -16,7 +18,7 @@ public class J48Classifier {
             J48 j48Classifier = new J48();
 
             // Dataset path
-            String dataset = "./data/god_class_fe.arff";
+            String dataset = "./data/exported/god_class_fe.arff";
 
             // Create bufferedreader to read the dataset
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataset));
