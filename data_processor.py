@@ -32,6 +32,7 @@ class DataProcessor:
     def feature_selection_kBest(self):
         model = SelectKBest(k=Utilities.SELECTKBEST)
         self.value_columns = model.fit_transform(self.value_columns, self.y)
+        self.attribute_names = self.attribute_names[np.array(model.get_support(indices=True))]
         # print(model.get_support(indices=True))
 
     def update_value_label_columns_index(self):
@@ -58,6 +59,7 @@ class DataProcessor:
         else:
             self.label_columns = self.x[Utilities.METHODLEVELLABEL]
             self.value_columns = self.x.drop(columns=Utilities.METHODLEVELLABEL)
+        self.attribute_names = np.array(self.value_columns.columns.tolist())
         self.value_columns = self.process_data()
         if self.feature_selection:
             self.feature_selection_kBest()
