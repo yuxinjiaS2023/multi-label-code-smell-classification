@@ -7,10 +7,9 @@ import numpy as np
 import copy
 import arff
 import Utilities
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, cross_val_score, cross_validate
 from sklearn.feature_selection import RFE
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -101,38 +100,64 @@ def label_chain(dp1, dp2):
 
 def train(model_name,x,y,feature_selection=False):
     clf = Utilities.get_model(model_name)
-    model = clf
-    #   split the set into training and testing
-    x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
     if feature_selection:
-        model = RFE(estimator=clf, step=1)
-    model.fit(x_train, y_train)
+        clf = RFE(estimator=clf, step=1)
+    #   clf.fit(x_train, y_train)
+    k_folds = KFold(n_splits = 10)
+    scoring_array = ["accuracy", "f1", "precision", "recall"]
+    scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
+       'precision' : make_scorer(precision_score, average = 'weighted'),
+       'recall' : make_scorer(recall_score, average = 'weighted'), 
+       'f1_score' : make_scorer(f1_score, average = 'weighted'),
+       'hamming_loss': make_scorer(hamming_loss)}
+    scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
+    print(scores)
+    
     print("================================================")
     print("\nThe testing set results are: ")
-    print("DT accuracy " + str(accuracy_score(y_test, model.predict(x_test))))
-    print("DT f1_score " + str(f1_score(y_test, model.predict(x_test),average='weighted')))
-    print("DT precision " + str(precision_score(y_test, model.predict(x_test),average='weighted')))
-    print("DT recall " + str(recall_score(y_test, model.predict(x_test),average='weighted')))
-    precision, recall, f1_score, support = precision_recall_fscore_support(labels_test, y_pred)
+    print("Accuracy " + str(scores["test_accuracy"].mean()))
+    print("F1_score " + str(scores["test_f1_score"].mean()))
+    print("Precision " + str(scores["test_precision"].mean()))
+    print("Recall " + str(scores["test_recall"].mean()))
+    print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
+    
+    
     
     '''
-    #   =====
-    #   CROSS VALIDATION
-    #   =====
-    # want to use cross-validation to check different models using the same small data pool (grid-search)
-    #
-    depths = np.arange(10, 21)  # something between 10 and 21, exclusive on 21
-    num_leafs = [1, 5, 10, 20, 50, 100]  # number of leaves
-    #  we want to tune based on criteria, max_depth, and min_samples_leaf
-    param_grid = {'criterion': ['gini', 'entropy'], 'max_depth': depths, 'min_samples_leaf': num_leafs}
-    # create another DT
-    new_tree_clf = DecisionTreeClassifier()
-    # do a grid search where you find all the possible combinations of the GS based on their grid search parameters
-    grid_search = GridSearchCV(new_tree_clf, param_grid, cv=10, scoring="accuracy", return_train_score=True)
-    grid_search.fit(x_train, y_train)
-    # this is the best estimator for the grid
-    best_model = grid_search.best_estimator_
+    do not need this ???
     '''
+    #   split the set into training and testing
+    #   x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
+    #   if feature_selection:
+    #       clf = RFE(estimator=clf, step=1)
+    #   clf.fit(x_train, y_train)
+    '''
+    print("================================================")
+    print("\nThe testing set results are: ")
+    print("DT accuracy " + str(accuracy_score(y_test, clf.predict(x_test))))
+    print("DT f1_score " + str(f1_score(y_test, clf.predict(x_test),average='weighted')))
+    print("DT precision " + str(precision_score(y_test, clf.predict(x_test),average='weighted')))
+    print("DT recall " + str(recall_score(y_test, clf.predict(x_test),average='weighted')))
+    '''
+    
+    '''
+    Not exactly  sure about showing the results for each label because of 
+    what is needed as parameters for classification_report or precision_recall_fscore_support.
+    
+    K_fold does not have x_text or y_test so not sure how to use Classification Report on it
+    '''
+    #   print("Classification report")
+    #   pred = clf.predict(x_test)
+    #   print(classification_report(y_test,pred))
+    '''
+    clf = DecisionTreeClassifier(random_state=42)
+    k_folds = KFold(n_splits = 5)
+    scores = cross_val_score(clf, X, y, cv = k_folds, scoring="accuracy")
+    precision, recall, f1_score, support = precision_recall_fscore_support(labels_test, y_pred)
+    '''
+    
+    
+ 
 
 
 def dump_arff_file(x, y, file_name):
