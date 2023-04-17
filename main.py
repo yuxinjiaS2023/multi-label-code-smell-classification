@@ -101,8 +101,6 @@ def label_chain(dp1, dp2):
 def train(model_name,x,y,feature_selection=False):
     clf = Utilities.get_model(model_name)
     model = clf
-    print(x)
-    print(y)
     #   split the set into training and testing
     x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
     if feature_selection:
@@ -114,6 +112,8 @@ def train(model_name,x,y,feature_selection=False):
     print("DT f1_score " + str(f1_score(y_test, model.predict(x_test),average='weighted')))
     print("DT precision " + str(precision_score(y_test, model.predict(x_test),average='weighted')))
     print("DT recall " + str(recall_score(y_test, model.predict(x_test),average='weighted')))
+    precision, recall, f1_score, support = precision_recall_fscore_support(labels_test, y_pred)
+    
     '''
     #   =====
     #   CROSS VALIDATION
@@ -160,5 +160,6 @@ if __name__ == '__main__':
     simple_processor_example("Classifier Chain")
     method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination")
     train("RF", class_mld_lc_x, class_mld_lc_y, False)
+    train("RF", class_mld_lc_x, class_mld_lc_y, True)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
