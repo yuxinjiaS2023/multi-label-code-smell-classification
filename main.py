@@ -9,7 +9,7 @@ import arff
 import Utilities
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, cross_validate
 from sklearn.feature_selection import RFE
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss, jaccard_score
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -111,7 +111,6 @@ def train(model_name,x,y,feature_selection=False):
        'f1_score' : make_scorer(f1_score, average = 'weighted'),
        'hamming_loss': make_scorer(hamming_loss)}
     scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
-    print(scores)
     
     print("================================================")
     print("\nThe testing set results are: ")
@@ -120,25 +119,17 @@ def train(model_name,x,y,feature_selection=False):
     print("Precision " + str(scores["test_precision"].mean()))
     print("Recall " + str(scores["test_recall"].mean()))
     print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
-    
+    print("================================================")
     
     
     '''
     do not need this ???
     '''
     #   split the set into training and testing
-    #   x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
-    #   if feature_selection:
-    #       clf = RFE(estimator=clf, step=1)
-    #   clf.fit(x_train, y_train)
-    '''
-    print("================================================")
-    print("\nThe testing set results are: ")
-    print("DT accuracy " + str(accuracy_score(y_test, clf.predict(x_test))))
-    print("DT f1_score " + str(f1_score(y_test, clf.predict(x_test),average='weighted')))
-    print("DT precision " + str(precision_score(y_test, clf.predict(x_test),average='weighted')))
-    print("DT recall " + str(recall_score(y_test, clf.predict(x_test),average='weighted')))
-    '''
+    #x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
+    #if feature_selection:
+    #    clf = RFE(estimator=clf, step=1)
+    #clf.fit(x_train, y_train)
     
     '''
     Not exactly  sure about showing the results for each label because of 
@@ -146,15 +137,11 @@ def train(model_name,x,y,feature_selection=False):
     
     K_fold does not have x_text or y_test so not sure how to use Classification Report on it
     '''
-    #   print("Classification report")
-    #   pred = clf.predict(x_test)
-    #   print(classification_report(y_test,pred))
-    '''
-    clf = DecisionTreeClassifier(random_state=42)
-    k_folds = KFold(n_splits = 5)
-    scores = cross_val_score(clf, X, y, cv = k_folds, scoring="accuracy")
-    precision, recall, f1_score, support = precision_recall_fscore_support(labels_test, y_pred)
-    '''
+    #print("Classification report")
+    #pred = clf.predict(x_test)
+    #print("Y_TEST:", y_test)
+    #print("PRED: ", pred)
+    #print(classification_report(y_test,pred))
     
     
  
@@ -234,15 +221,78 @@ def simple_processor_example(method, dump=False):
             dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
             dump_arff_file(class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, "class_mld_no_fe_lc.arff")
             dump_arff_file(class_mld_lc_fe_x, class_mld_lc_fe_y, "class_mld_fe_lc.arff")
-        return method_mld_lc_fe_x, method_mld_lc_fe_y, class_mld_lc_fe_x, class_mld_lc_fe_y
+    
 
+def dt_rf_runner():
+    #   regular
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+    #   CC
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+    #   RUN THE DT 
+    print("=============== STARTING DT ===============")
+    train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("DT", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    train("DT", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING DT ===============")
+    
+    print("=============== STARTING RF ===============")
+    train("RF", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("RF", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("RF", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    train("RF", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING RF ===============")
+    #   print(dp_gc_no_fe.label_columns, dp_gc_no_fe.y)
+    '''
+    print("=============== STARTING DT ===============")
+    print("DT 1")
+    train("DT", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("DT 2")
+    train("DT", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("DT 3")
+    train("DT", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("DT 4")
+    train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("DT 5")
+    train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
+    print("=============== ENDING DT ===============")
+    
+    print("=============== STARTING RF ===============")
+    print("RF 1")
+    train("RF", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("RF 2")
+    train("RF", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("RF 3")
+    train("RF", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("RF 4")
+    train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("RF 5")
+    train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
+    print("=============== ENDING RF ===============")
+    '''
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    simple_processor_example("Classifier Chain", dump=True)
-    method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
-    train("RF", class_mld_lc_x, class_mld_lc_y, False)
-    train("RF", class_mld_lc_x, class_mld_lc_y, True)
+    #   simple_processor_example("Classifier Chain", dump=True)
+    #method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
+    #print(class_mld_lc_y)
+    #train("RF", class_mld_lc_x, class_mld_lc_y, False)
+    dt_rf_runner()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
