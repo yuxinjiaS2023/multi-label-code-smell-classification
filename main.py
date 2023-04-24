@@ -10,6 +10,7 @@ import Utilities
 from sklearn.model_selection import GridSearchCV, train_test_split, KFold, cross_val_score, cross_validate
 from sklearn.feature_selection import RFE
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss, jaccard_score
+from sklearn.neural_network import MLPClassifier
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
