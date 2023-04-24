@@ -9,8 +9,10 @@ import arff
 import Utilities
 from sklearn.model_selection import GridSearchCV, train_test_split, KFold, cross_val_score, cross_validate
 from sklearn.feature_selection import RFE
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss, jaccard_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, \
+    hamming_loss, jaccard_score
 from sklearn.neural_network import MLPClassifier
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -50,16 +52,18 @@ def common_instances_combine(dp1, dp2):
     new_dp.update_value_label_columns_index()
     return new_dp
 
+
 def common_instances_chain(dp1, dp2):
     new_dp = copy.deepcopy(dp1)
     common_rows_arr1, common_rows_arr2 = extract_common_rows(dp1.x, dp2.x)
     new_dp.y = dp2.y[common_rows_arr2]
-    #print("dp1", dp1.y[common_rows_arr1])
+    # print("dp1", dp1.y[common_rows_arr1])
     new_dp.x = np.concatenate((new_dp.x[common_rows_arr1], dp1.y[common_rows_arr1].reshape(-1, 1)), axis=1)
     # new_dp.value_columns = new_dp.value_columns[common_rows_arr1]
     new_dp.value_columns = new_dp.value_columns[common_rows_arr1]
     new_dp.update_value_label_columns_index()
     return new_dp
+
 
 # This picks up on
 def uncommon_instances_combine(dp1, dp2, model_name):
@@ -85,6 +89,7 @@ def uncommon_instances_combine(dp1, dp2, model_name):
     new_y1 = [int(f"{a}{b}", 2) for a, b in zip(uncommon_y1, predicted_uncommon_y2)]
     return uncommon_values1, uncommon_values2, new_y1, new_y2
 
+
 def label_combination(dp1, dp2, model_name):
     # Common instances:
     new_dp = common_instances_combine(dp1, dp2)
@@ -94,9 +99,11 @@ def label_combination(dp1, dp2, model_name):
     y = np.concatenate((new_dp.y, uncommon_y1, uncommon_y2), axis=0)
     return x, y
 
+
 def label_chain(dp1, dp2):
     new_dp = common_instances_chain(dp1, dp2)
     return new_dp.value_columns, new_dp.y
+
 
 def hyperparameter_tuning(X, Y, clf):
     param_grid = {
@@ -109,11 +116,11 @@ def hyperparameter_tuning(X, Y, clf):
     }
     X_train, X_test, y_train, y_test = train_test_split(X,
 
-                                                    Y,
+                                                        Y,
 
-                                                    test_size=0.1,
+                                                        test_size=0.1,
 
-                                                    random_state=42)
+                                                        random_state=42)
     clf.fit(X_train, y_train)
     grid_search = GridSearchCV(
         clf, param_grid, cv=10, scoring="accuracy", return_train_score=True
@@ -122,25 +129,26 @@ def hyperparameter_tuning(X, Y, clf):
     best_model = grid_search.best_estimator_
     return best_model
 
-def train(model_name,x,y,feature_selection=False):
+
+def train(model_name, x, y, feature_selection=False):
     clf = Utilities.get_model(model_name)
-    if(model_name == "DT"):
-        clf =  hyperparameter_tuning(x,y,clf)
+    if (model_name == "DT"):
+        clf = hyperparameter_tuning(x, y, clf)
     if feature_selection:
         clf = RFE(estimator=clf, step=1)
     #   clf.fit(x_train, y_train)
-    
-    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
+
+    k_folds = KFold(n_splits=10, shuffle=True, random_state=42)
     scoring_array = ["accuracy", "f1", "precision", "recall"]
-    scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
-       'precision' : make_scorer(precision_score, average = 'weighted'),
-       'recall' : make_scorer(recall_score, average = 'weighted'), 
-       'f1_score' : make_scorer(f1_score, average = 'weighted'),
-       'hamming_loss': make_scorer(hamming_loss),
-       'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
-       }
-    scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
-    
+    scoring_dict = {'accuracy': make_scorer(accuracy_score),
+                    'precision': make_scorer(precision_score, average='weighted'),
+                    'recall': make_scorer(recall_score, average='weighted'),
+                    'f1_score': make_scorer(f1_score, average='weighted'),
+                    'hamming_loss': make_scorer(hamming_loss),
+                    'jaccard_score': make_scorer(jaccard_score, average='weighted'),
+                    }
+    scores = cross_validate(clf, x, y, cv=k_folds, scoring=scoring_dict)
+
     print("================================================")
     print("\nThe testing set results are: ")
     print("Accuracy " + str(scores["test_accuracy"].mean()))
@@ -150,31 +158,27 @@ def train(model_name,x,y,feature_selection=False):
     print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
     print("Jaccard Score " + str(scores["test_jaccard_score"].mean()))
     print("================================================")
-    
-    
+
     '''
     do not need this ???
     '''
     #   split the set into training and testing
-    #x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
-    #if feature_selection:
+    # x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
+    # if feature_selection:
     #    clf = RFE(estimator=clf, step=1)
-    #clf.fit(x_train, y_train)
-    
+    # clf.fit(x_train, y_train)
+
     '''
     Not exactly  sure about showing the results for each label because of 
     what is needed as parameters for classification_report or precision_recall_fscore_support.
     
     K_fold does not have x_text or y_test so not sure how to use Classification Report on it
     '''
-    #print("Classification report")
-    #pred = clf.predict(x_test)
-    #print("Y_TEST:", y_test)
-    #print("PRED: ", pred)
-    #print(classification_report(y_test,pred))
-    
-    
- 
+    # print("Classification report")
+    # pred = clf.predict(x_test)
+    # print("Y_TEST:", y_test)
+    # print("PRED: ", pred)
+    # print(classification_report(y_test,pred))
 
 
 def dump_arff_file(x, y, file_name):
@@ -206,7 +210,7 @@ def dump_arff_file(x, y, file_name):
             except ValueError:
                 pass
     arff.dump(file_name, data, relation='my_relation')
-    
+
 
 def simple_processor_example(method, dump=False):
     # give the appropriate file name for input data
@@ -227,7 +231,7 @@ def simple_processor_example(method, dump=False):
     #     dump_arff_file(dp_lm_fe.value_columns, dp_lm_fe.y, "long_method_fe.arff")
     #     dump_arff_file(dp_fe_no_fe.value_columns, dp_fe_no_fe.y, "feature_envy_no_fe.arff")
     #     dump_arff_file(dp_fe_fe.value_columns, dp_fe_fe.y, "feature_envy_fe.arff")
-    
+
     # dp.x stores the processed and feature selected data
     # dp.value_columns vs dp.label_columns
     # dp.y stores the target
@@ -251,7 +255,8 @@ def simple_processor_example(method, dump=False):
         #     dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
         #     dump_arff_file(class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, "class_mld_no_fe_lc.arff")
         #     dump_arff_file(class_mld_lc_fe_x, class_mld_lc_fe_y, "class_mld_fe_lc.arff")
-        #return method_mld_lc_fe_x, method_mld_lc_fe_y, class_mld_lc_fe_x, class_mld_lc_fe_y
+        # return method_mld_lc_fe_x, method_mld_lc_fe_y, class_mld_lc_fe_x, class_mld_lc_fe_y
+
 
 def dt_rf_runner():
     #   regular
@@ -273,7 +278,7 @@ def dt_rf_runner():
     method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
     class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
     class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
-    
+
     #   RUN THE DT 
     print("=============== STARTING DT for BASE ===============")
     train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
@@ -281,7 +286,7 @@ def dt_rf_runner():
     train("DT", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
     print("=============== ENDING DT for BASE ===============")
-    
+
     print("=============== STARTING RF for BASE ===============")
     train("RF", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
     train("RF", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
@@ -289,7 +294,7 @@ def dt_rf_runner():
     train("RF", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
     print("=============== ENDING RF for BASE ===============")
     #   print(dp_gc_no_fe.label_columns, dp_gc_no_fe.y)
-    
+
     print("=============== STARTING DT FOR COMBINED===============")
     print("DT 1")
     train("DT", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
@@ -302,7 +307,7 @@ def dt_rf_runner():
     print("DT 5")
     train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING DT FOR COMBINED===============")
-    
+
     print("=============== STARTING RF FOR COMBINED===============")
     print("RF 1")
     train("RF", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
@@ -315,15 +320,15 @@ def dt_rf_runner():
     print("RF 5")
     train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING RF FOR COMBINED ===============")
-    
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
     #   simple_processor_example("Classifier Chain", dump=True)
-    #method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
-    #print(class_mld_lc_y)
-    #train("RF", class_mld_lc_x, class_mld_lc_y, False)
+    # method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
+    # print(class_mld_lc_y)
+    # train("RF", class_mld_lc_x, class_mld_lc_y, False)
     dt_rf_runner()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
