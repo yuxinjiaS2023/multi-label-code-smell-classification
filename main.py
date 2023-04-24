@@ -132,7 +132,7 @@ def hyperparameter_tuning(X, Y, clf):
 
 def train(model_name, x, y, feature_selection=False):
     clf = Utilities.get_model(model_name)
-    if (model_name == "DT"):
+    if model_name == "DT":
         clf = hyperparameter_tuning(x, y, clf)
     if feature_selection:
         clf = RFE(estimator=clf, step=1)
@@ -322,6 +322,49 @@ def dt_rf_runner():
     print("=============== ENDING RF FOR COMBINED ===============")
 
 
+def nn_runner():
+    #   regular
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+    #   CC
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+
+    #   RUN THE DT
+    print("=============== STARTING DT for BASE ===============")
+    train("NN", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("NN", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    train("NN", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    train("NN", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING DT for BASE ===============")
+
+    print("=============== STARTING NN FOR COMBINED===============")
+    print("NN 1")
+    train("NN", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("NN 2")
+    train("NN", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("NN 3")
+    train("NN", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("NN 4")
+    train("NN", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("NN 5")
+    train("NN", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
+    print("=============== ENDING DT FOR COMBINED===============")
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
@@ -329,6 +372,6 @@ if __name__ == '__main__':
     # method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
     # print(class_mld_lc_y)
     # train("RF", class_mld_lc_x, class_mld_lc_y, False)
-    dt_rf_runner()
+    nn_runner()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
