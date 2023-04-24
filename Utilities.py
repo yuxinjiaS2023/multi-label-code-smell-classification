@@ -58,7 +58,7 @@ def get_model(model):
     elif model == "NB":
         return MultinomialNB()
     elif model == "NN":
-        return MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+        return MLPClassifier(hidden_layer_sizes=(100, 50), activation='relu', solver='adam', max_iter=500)
     else:
         print("such model does not exist")
         exit()
