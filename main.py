@@ -7,7 +7,7 @@ import numpy as np
 import copy
 import arff
 import Utilities
-from sklearn.model_selection import train_test_split, KFold, cross_val_score, cross_validate
+from sklearn.model_selection import GridSearchCV, train_test_split, KFold, cross_val_score, cross_validate
 from sklearn.feature_selection import RFE
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss, jaccard_score
 
@@ -97,12 +97,37 @@ def label_chain(dp1, dp2):
     new_dp = common_instances_chain(dp1, dp2)
     return new_dp.value_columns, new_dp.y
 
+def hyperparameter_tuning(X, Y, clf):
+    param_grid = {
+        "criterion": ["gini", "entropy"],
+        "splitter": ["best", "random"],
+        "max_depth": [None, 10, 50, 100, 200],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
+        "max_features": ["auto", "sqrt", "log2", None],
+    }
+    X_train, X_test, y_train, y_test = train_test_split(X,
+
+                                                    Y,
+
+                                                    test_size=0.1,
+
+                                                    random_state=42)
+    clf.fit(X_train, y_train)
+    grid_search = GridSearchCV(
+        clf, param_grid, cv=10, scoring="accuracy", return_train_score=True
+    )
+    grid_search.fit(X_train, y_train)
+    best_model = grid_search.best_estimator_
+    return best_model
 
 def train(model_name,x,y,feature_selection=False):
     clf = Utilities.get_model(model_name)
     if feature_selection:
         clf = RFE(estimator=clf, step=1)
     #   clf.fit(x_train, y_train)
+    if(model_name == "DT"):
+        clf =  hyperparameter_tuning(x,y,clf)
     k_folds = KFold(n_splits = 10)
     scoring_array = ["accuracy", "f1", "precision", "recall"]
     scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
@@ -188,15 +213,15 @@ def simple_processor_example(method, dump=False):
     dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
     dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
     dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
-    if dump:
-        dump_arff_file(dp_gc_no_fe.value_columns, dp_gc_no_fe.y, "god_class_no_fe.arff")
-        dump_arff_file(dp_gc_fe.value_columns, dp_gc_fe.y, "god_class_fe.arff")
-        dump_arff_file(dp_dc_no_fe.value_columns, dp_dc_no_fe.y, "data_class_no_fe.arff")
-        dump_arff_file(dp_dc_fe.value_columns, dp_dc_fe.y, "data_class_fe.arff")
-        dump_arff_file(dp_lm_no_fe.value_columns, dp_lm_no_fe.y, "long_method_no_fe.arff")
-        dump_arff_file(dp_lm_fe.value_columns, dp_lm_fe.y, "long_method_fe.arff")
-        dump_arff_file(dp_fe_no_fe.value_columns, dp_fe_no_fe.y, "feature_envy_no_fe.arff")
-        dump_arff_file(dp_fe_fe.value_columns, dp_fe_fe.y, "feature_envy_fe.arff")
+    # if dump:
+    #     dump_arff_file(dp_gc_no_fe.value_columns, dp_gc_no_fe.y, "god_class_no_fe.arff")
+    #     dump_arff_file(dp_gc_fe.value_columns, dp_gc_fe.y, "god_class_fe.arff")
+    #     dump_arff_file(dp_dc_no_fe.value_columns, dp_dc_no_fe.y, "data_class_no_fe.arff")
+    #     dump_arff_file(dp_dc_fe.value_columns, dp_dc_fe.y, "data_class_fe.arff")
+    #     dump_arff_file(dp_lm_no_fe.value_columns, dp_lm_no_fe.y, "long_method_no_fe.arff")
+    #     dump_arff_file(dp_lm_fe.value_columns, dp_lm_fe.y, "long_method_fe.arff")
+    #     dump_arff_file(dp_fe_no_fe.value_columns, dp_fe_no_fe.y, "feature_envy_no_fe.arff")
+    #     dump_arff_file(dp_fe_fe.value_columns, dp_fe_fe.y, "feature_envy_fe.arff")
     
     # dp.x stores the processed and feature selected data
     # dp.value_columns vs dp.label_columns
@@ -206,22 +231,22 @@ def simple_processor_example(method, dump=False):
         method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
         class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
         class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
-        if dump:
-            dump_arff_file(method_mld_cc_fe_x, method_mld_cc_fe_y, "method_mld_fe_cc.arff")
-            dump_arff_file(class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, "class_mld__no_fe_cc.arff")
-            dump_arff_file(class_mld_cc_fe_x, class_mld_cc_fe_y, "class_mld_fe_cc.arff")
-            dump_arff_file(method_mld_cc_no_fe_x, method_mld_cc_no_fe_y, "method_mld_no_fe_cc.arff")
+        # if dump:
+        #     dump_arff_file(method_mld_cc_fe_x, method_mld_cc_fe_y, "method_mld_fe_cc.arff")
+        #     dump_arff_file(class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, "class_mld__no_fe_cc.arff")
+        #     dump_arff_file(class_mld_cc_fe_x, class_mld_cc_fe_y, "class_mld_fe_cc.arff")
+        #     dump_arff_file(method_mld_cc_no_fe_x, method_mld_cc_no_fe_y, "method_mld_no_fe_cc.arff")
     elif method == "Label Combination":
         method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
         method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
         class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
         class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
-        if dump:
-            dump_arff_file(method_mld_lc_fe_x, method_mld_lc_fe_y, "method_mld_fe_lc.arff")
-            dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
-            dump_arff_file(class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, "class_mld_no_fe_lc.arff")
-            dump_arff_file(class_mld_lc_fe_x, class_mld_lc_fe_y, "class_mld_fe_lc.arff")
-    
+        # if dump:
+        #     dump_arff_file(method_mld_lc_fe_x, method_mld_lc_fe_y, "method_mld_fe_lc.arff")
+        #     dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
+        #     dump_arff_file(class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, "class_mld_no_fe_lc.arff")
+        #     dump_arff_file(class_mld_lc_fe_x, class_mld_lc_fe_y, "class_mld_fe_lc.arff")
+        #return method_mld_lc_fe_x, method_mld_lc_fe_y, class_mld_lc_fe_x, class_mld_lc_fe_y
 
 def dt_rf_runner():
     #   regular
