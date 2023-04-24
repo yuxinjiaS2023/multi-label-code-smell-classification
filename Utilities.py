@@ -49,11 +49,11 @@ def get_model(model):
     elif model == "SVM":
         return svm.SVC(kernel='linear')
     elif model == "CART":
-        return DecisionTreeClassifier()
+        return DecisionTreeClassifier(random_state=42)
     elif model == "RF":
-        return RandomForestClassifier()
+        return RandomForestClassifier(random_state=42)
     elif model == "DT":
-        return DecisionTreeClassifier()
+        return DecisionTreeClassifier(random_state=42)
     elif model == "NB":
         return MultinomialNB()
     else:

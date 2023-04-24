@@ -123,18 +123,21 @@ def hyperparameter_tuning(X, Y, clf):
 
 def train(model_name,x,y,feature_selection=False):
     clf = Utilities.get_model(model_name)
+    if(model_name == "DT"):
+        clf =  hyperparameter_tuning(x,y,clf)
     if feature_selection:
         clf = RFE(estimator=clf, step=1)
     #   clf.fit(x_train, y_train)
-    if(model_name == "DT"):
-        clf =  hyperparameter_tuning(x,y,clf)
-    k_folds = KFold(n_splits = 10)
+    
+    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
     scoring_array = ["accuracy", "f1", "precision", "recall"]
     scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
        'precision' : make_scorer(precision_score, average = 'weighted'),
        'recall' : make_scorer(recall_score, average = 'weighted'), 
        'f1_score' : make_scorer(f1_score, average = 'weighted'),
-       'hamming_loss': make_scorer(hamming_loss)}
+       'hamming_loss': make_scorer(hamming_loss),
+       'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
+       }
     scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
     
     print("================================================")
@@ -144,6 +147,7 @@ def train(model_name,x,y,feature_selection=False):
     print("Precision " + str(scores["test_precision"].mean()))
     print("Recall " + str(scores["test_recall"].mean()))
     print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
+    print("Jaccard Score " + str(scores["test_jaccard_score"].mean()))
     print("================================================")
     
     
@@ -268,23 +272,24 @@ def dt_rf_runner():
     method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
     class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
     class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+    
     #   RUN THE DT 
-    print("=============== STARTING DT ===============")
+    print("=============== STARTING DT for BASE ===============")
     train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
-    print("=============== ENDING DT ===============")
+    print("=============== ENDING DT for BASE ===============")
     
-    print("=============== STARTING RF ===============")
+    print("=============== STARTING RF for BASE ===============")
     train("RF", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
     train("RF", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
     train("RF", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
     train("RF", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
-    print("=============== ENDING RF ===============")
+    print("=============== ENDING RF for BASE ===============")
     #   print(dp_gc_no_fe.label_columns, dp_gc_no_fe.y)
-    '''
-    print("=============== STARTING DT ===============")
+    
+    print("=============== STARTING DT FOR COMBINED===============")
     print("DT 1")
     train("DT", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
     print("DT 2")
@@ -295,9 +300,9 @@ def dt_rf_runner():
     train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
     print("DT 5")
     train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
-    print("=============== ENDING DT ===============")
+    print("=============== ENDING DT FOR COMBINED===============")
     
-    print("=============== STARTING RF ===============")
+    print("=============== STARTING RF FOR COMBINED===============")
     print("RF 1")
     train("RF", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
     print("RF 2")
@@ -308,8 +313,8 @@ def dt_rf_runner():
     train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
     print("RF 5")
     train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
-    print("=============== ENDING RF ===============")
-    '''
+    print("=============== ENDING RF FOR COMBINED ===============")
+    
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
