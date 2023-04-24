@@ -2,6 +2,7 @@ from sklearn.feature_selection import mutual_info_classif
 from keras.models import Sequential
 from keras.layers import Dense
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
@@ -53,6 +54,8 @@ def get_model(model):
         return RandomForestClassifier()
     elif model == "DT":
         return DecisionTreeClassifier()
+    elif model == "NB":
+        return MultinomialNB()
     else:
         print("such model does not exist")
         exit()
