@@ -125,7 +125,6 @@ def hyperparameter_tuning(X, Y, clf, model_name):
             "n_jobs": [-1]
             
         }
-
     X_train, X_test, y_train, y_test = train_test_split(X,
 
                                                         Y,
@@ -334,7 +333,136 @@ def dt_rf_runner():
     train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING RF FOR COMBINED ===============")
 
+def svm():
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
 
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+
+    print("=============== STARTING SVM for BASE ===============")
+    print("SVM god class no FE")
+    train("SVM", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM data class no FE")
+    train("SVM", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM long method no FE")
+    train("SVM", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM feature envy no FE")
+    train("SVM", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING SVM for BASE ===============")
+
+    print("=============== STARTING SVM FOR COMBINED===============")
+    print("SVM method CC no FE")
+    train("SVM", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("SVM method LC no FE")
+    train("SVM", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("SVM class CC no FE")
+    train("SVM", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("SVM class LC no FE")
+    train("SVM", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("SVM class LC with FE")
+    train("SVM", class_mld_lc_fe_x, class_mld_lc_fe_y)
+    print("=============== ENDING SVM FOR COMBINED===============")
+def svm_ova():
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+
+    print("=============== STARTING SVM_OVA for BASE ===============")
+    print("SVM god class no FE")
+    train("SVM_OVA", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM data class no FE")
+    train("SVM_OVA", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM long method no FE")
+    train("SVM_OVA", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    print("SVM feature envy no FE")
+    train("SVM_OVA", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING SVM_OVA for BASE ===============")
+
+    print("=============== STARTING SVM_OVA FOR COMBINED===============")
+    print("SVM method CC no FE")
+    train("SVM_OVA", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("SVM method LC no FE")
+    train("SVM_OVA", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("SVM class CC no FE")
+    train("SVM_OVA", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("SVM class LC no FE")
+    train("SVM_OVA", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("SVM class LC with FE")
+    train("SVM_OVA", class_mld_lc_fe_x, class_mld_lc_fe_y)
+    print("=============== ENDING SVM_OVA FOR COMBINED===============")
+
+def NB():
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+
+    print("=============== STARTING NB for BASE ===============")
+    print("NB god class no FE")
+    train("NB", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("NB data class no FE")
+    train("NB", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("NB long method no FE")
+    train("NB", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
+    print("NB feature envy no FE")
+    train("NB", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    print("=============== ENDING NB for BASE ===============")
+
+    print("=============== STARTING NB FOR COMBINED===============")
+    print("NB method CC no FE")
+    train("NB", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("NB method LC no FE")
+    train("NB", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("NB class CC no FE")
+    train("NB", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("NB class LC no FE")
+    train("NB", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("NB class LC with FE")
+    train("NB", class_mld_lc_fe_x, class_mld_lc_fe_y)
+    print("=============== ENDING NB FOR COMBINED===============")
 def nn_runner():
     #   regular
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
@@ -378,6 +506,7 @@ def nn_runner():
     print("=============== ENDING DT FOR COMBINED===============")
 
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
@@ -385,6 +514,10 @@ if __name__ == '__main__':
     # method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
     # print(class_mld_lc_y)
     # train("RF", class_mld_lc_x, class_mld_lc_y, False)
-    nn_runner()
+    # nn_runner()
+    # svm()
+    NB()
+    # svm_ova()
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

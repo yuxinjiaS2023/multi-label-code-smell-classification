@@ -4,6 +4,13 @@ from keras.layers import Dense
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import MultinomialNB
+
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsOneClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.multiclass import OneVsRestClassifier
+
+from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
@@ -48,7 +55,9 @@ def get_model(model):
         # Create a sequential model
         return DecisionTreeClassifier(criterion='entropy')
     elif model == "SVM":
-        return svm.SVC(kernel='linear')
+        return make_pipeline(StandardScaler(), OneVsOneClassifier(SVC(kernel='linear')))
+    elif model == "SVM_OVA":
+        return make_pipeline(StandardScaler(), OneVsRestClassifier(SVC(kernel='linear')))
     elif model == "CART":
         return DecisionTreeClassifier(random_state=42)
     elif model == "RF":
@@ -56,7 +65,7 @@ def get_model(model):
     elif model == "DT":
         return DecisionTreeClassifier(random_state=42)
     elif model == "NB":
-        return MultinomialNB()
+        return GaussianNB()
     elif model == "NN":
         return MLPClassifier(hidden_layer_sizes=(100, 50), activation='relu', solver='adam', max_iter=500)
     else:
