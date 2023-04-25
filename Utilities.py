@@ -1,6 +1,7 @@
 from sklearn.feature_selection import mutual_info_classif
 from keras.models import Sequential
 from keras.layers import Dense
+from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -56,6 +57,9 @@ def get_model(model):
         return DecisionTreeClassifier(random_state=42)
     elif model == "NB":
         return MultinomialNB()
+    elif model == "NN":
+        return MLPClassifier(hidden_layer_sizes=(100, 50), activation='relu', solver='adam', max_iter=500)
     else:
         print("such model does not exist")
         exit()
+
