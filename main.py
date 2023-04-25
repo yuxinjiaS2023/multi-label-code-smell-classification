@@ -105,7 +105,9 @@ def label_chain(dp1, dp2):
     return new_dp.value_columns, new_dp.y
 
 def hyperparameter_tuning(X, Y, clf, model_name):
+    print("IN HT")
     if (model_name == "DT"):
+        print("IN HERE")
         param_grid = {
             "criterion": ["gini", "entropy"],
             "splitter": ["best", "random"],
@@ -290,20 +292,22 @@ def dt_rf_runner():
     class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
 
     #   RUN THE DT 
-    '''
+    #train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y,ht=False)
+    #train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y,ht=True)
+    
     print("=============== STARTING DT for BASE ===============")
     train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
-    train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
-    train("DT", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
-    train("DT", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    train("DT", dp_dc_no_fe.value_columns, dp_dc_no_fe.y)
+    train("DT", dp_lm_no_fe.value_columns, dp_lm_no_fe.y)
+    train("DT", dp_fe_no_fe.value_columns, dp_fe_no_fe.y)
     print("=============== ENDING DT for BASE ===============")
     
     
     print("=============== STARTING RF for BASE ===============")
     train("RF", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
-    train("RF", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
-    train("RF", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
-    train("RF", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
+    train("RF", dp_dc_no_fe.value_columns, dp_dc_no_fe.y)
+    train("RF", dp_lm_no_fe.value_columns, dp_lm_no_fe.y)
+    train("RF", dp_fe_no_fe.value_columns, dp_fe_no_fe.y)
     print("=============== ENDING RF for BASE ===============")
     #   print(dp_gc_no_fe.label_columns, dp_gc_no_fe.y)
 
@@ -317,7 +321,7 @@ def dt_rf_runner():
     print("DT 4")
     train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
     print("DT 5")
-    train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
+    train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, feature_selection=True)
     print("=============== ENDING DT FOR COMBINED===============")
 
     print("=============== STARTING RF FOR COMBINED===============")
@@ -330,9 +334,10 @@ def dt_rf_runner():
     print("RF 4")
     train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
     print("RF 5")
-    '''
-    train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
+    
+    train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, feature_selection=True)
     print("=============== ENDING RF FOR COMBINED ===============")
+    
 
 
 def nn_runner():
@@ -385,6 +390,7 @@ if __name__ == '__main__':
     # method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
     # print(class_mld_lc_y)
     # train("RF", class_mld_lc_x, class_mld_lc_y, False)
-    nn_runner()
+    #   nn_runner()
+    dt_rf_runner()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
