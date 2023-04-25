@@ -10,7 +10,7 @@
 @attribute attr8 real
 @attribute attr9 real
 @attribute attr10 real
-@attribute attr11 {Y0, Y1, Y2, Y3}
+@attribute attr11 {Y0, Y1}
 @data
 2.0,0.0,2.0,18.0,18.0,0.0,4.0,4.0,2.0,2.0,0.0,'Y0'
 7.0,1.0,7.0,34.0,34.0,2.0,7.0,7.0,7.0,7.0,0.0,'Y0'
