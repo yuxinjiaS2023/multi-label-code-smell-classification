@@ -8,7 +8,7 @@ import copy
 import arff
 import Utilities
 from sklearn.model_selection import GridSearchCV, train_test_split, KFold, cross_val_score, cross_validate
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFE, RFECV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, hamming_loss, jaccard_score
 from sklearn.neural_network import MLPClassifier
 
@@ -98,15 +98,28 @@ def label_chain(dp1, dp2):
     new_dp = common_instances_chain(dp1, dp2)
     return new_dp.value_columns, new_dp.y
 
-def hyperparameter_tuning(X, Y, clf):
-    param_grid = {
-        "criterion": ["gini", "entropy"],
-        "splitter": ["best", "random"],
-        "max_depth": [None, 10, 50, 100, 200],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-        "max_features": ["auto", "sqrt", "log2", None],
-    }
+def hyperparameter_tuning(X, Y, clf, model_name):
+    if (model_name == "DT"):
+        param_grid = {
+            "criterion": ["gini", "entropy"],
+            "splitter": ["best", "random"],
+            "max_depth": [None, 10, 50, 100, 200],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 4],
+            "max_features": ["sqrt", "log2", None],
+            
+            
+        }
+    elif (model_name == "RF"):
+        param_grid = {
+            "criterion": ["gini", "entropy"],
+            "max_depth": [3,5,7,10],
+            "min_samples_leaf": [1, 5, 10, 20, 50, 100],
+            "max_features": [ "sqrt", "log2"],
+            "n_jobs": [-1]
+            
+        }
+
     X_train, X_test, y_train, y_test = train_test_split(X,
 
                                                     Y,
@@ -122,16 +135,8 @@ def hyperparameter_tuning(X, Y, clf):
     best_model = grid_search.best_estimator_
     return best_model
 
-def train(model_name,x,y,feature_selection=False):
+def train(model_name,x,y,ht=False, feature_selection=False):
     clf = Utilities.get_model(model_name)
-    if(model_name == "DT"):
-        clf =  hyperparameter_tuning(x,y,clf)
-    if feature_selection:
-        clf = RFE(estimator=clf, step=1)
-    #   clf.fit(x_train, y_train)
-    
-    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
-    scoring_array = ["accuracy", "f1", "precision", "recall"]
     scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
        'precision' : make_scorer(precision_score, average = 'weighted'),
        'recall' : make_scorer(recall_score, average = 'weighted'), 
@@ -139,6 +144,13 @@ def train(model_name,x,y,feature_selection=False):
        'hamming_loss': make_scorer(hamming_loss),
        'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
        }
+    if(ht and (model_name == "DT" or model_name == "RF") ):
+        clf =  hyperparameter_tuning(x,y,clf,model_name)
+    #   I belive this will do feature selection in the Cross_validate?
+    if feature_selection:
+        clf = RFE(estimator=clf)
+    #   clf.fit(x_train, y_train)
+    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
     scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
     
     print("================================================")
@@ -275,12 +287,14 @@ def dt_rf_runner():
     class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
     
     #   RUN THE DT 
+    '''
     print("=============== STARTING DT for BASE ===============")
     train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_lm_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_fe_no_fe.value_columns, dp_gc_no_fe.y)
     print("=============== ENDING DT for BASE ===============")
+    
     
     print("=============== STARTING RF for BASE ===============")
     train("RF", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
@@ -313,6 +327,7 @@ def dt_rf_runner():
     print("RF 4")
     train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
     print("RF 5")
+    '''
     train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING RF FOR COMBINED ===============")
     
