@@ -36,6 +36,18 @@ public class J48Classifier {
         return exactMatchRatio / evaluation.numInstances();
     }
 
+    public static double jaccardIndex(Evaluation evaluation, int numClasses) {
+        double sum = 0.0;
+        for (int i = 0; i < numClasses; i++) {
+            double truePositive = evaluation.truePositiveRate(i);
+            double falsePositive = evaluation.falsePositiveRate(i);
+            double falseNegative = evaluation.falseNegativeRate(i);
+            sum += truePositive / (truePositive + falsePositive + falseNegative);
+        }
+        return sum / numClasses;
+    }
+
+
     public static void evaluateFile(String dataset){
         try{
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataset));
@@ -65,6 +77,7 @@ public class J48Classifier {
                     "\nResults: Unpruned", false));
             System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
             System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
+            System.out.println("Jaccard Index: " + jaccardIndex(evaluation, datasetInstances.numClasses()));
             System.out.println(evaluation.toClassDetailsString());
 
             // Pruned Tree
@@ -75,22 +88,7 @@ public class J48Classifier {
                     "\nResults: Pruned", false));
             System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
             System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
-            System.out.println(evaluation.toClassDetailsString());
-
-            // Bagging-unpruned
-            evaluation.crossValidateModel(bagger, datasetInstances, 10, new Random(1));
-            System.out.println(evaluation.toSummaryString(
-                    "\nResults: Bagging-UnPruned", false));
-            System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
-            System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
-            System.out.println(evaluation.toClassDetailsString());
-
-            // Boosting-unpruned
-            evaluation.crossValidateModel(adaBoost, datasetInstances, 10, new Random(1));
-            System.out.println(evaluation.toSummaryString(
-                    "\nResults: Boosting-Unpruned", false));
-            System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
-            System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
+            System.out.println("Jaccard Index: " + jaccardIndex(evaluation, datasetInstances.numClasses()));
             System.out.println(evaluation.toClassDetailsString());
 
             // Bagging-pruned
@@ -101,6 +99,7 @@ public class J48Classifier {
                     "\nResults: Bagging-Pruned", false));
             System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
             System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
+            System.out.println("Jaccard Index: " + jaccardIndex(evaluation, datasetInstances.numClasses()));
             System.out.println(evaluation.toClassDetailsString());
 
             // Boosting-pruned
@@ -111,6 +110,7 @@ public class J48Classifier {
                     "\nResults: Boosting-Pruned", false));
             System.out.println("Hamming Loss: " + getHammingLoss(evaluation, datasetInstances.numClasses()));
             System.out.println("Exact Match Ratio: " + getExactMatchRatio(evaluation));
+            System.out.println("Jaccard Index: " + jaccardIndex(evaluation, datasetInstances.numClasses()));
             System.out.println(evaluation.toClassDetailsString());
         }catch (Exception e){
             System.out.println("Error Occurred!!!! \n"
@@ -122,7 +122,7 @@ public class J48Classifier {
     public static void main(String args[]) {
         // Try block to check for exceptions
         try {
-            evaluateFile("./data/exported/method_mld_fe_lc.arff");
+            evaluateFile("./data/exported/class_mld__no_fe_cc.arff");
         }
 
         // Catch block to check for rexceptions
