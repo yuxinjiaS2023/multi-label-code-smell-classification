@@ -104,6 +104,7 @@ def label_chain(dp1, dp2):
     new_dp = common_instances_chain(dp1, dp2)
     return new_dp.value_columns, new_dp.y
 
+
 def hyperparameter_tuning(X, Y, clf, model_name):
     if (model_name == "DT"):
         param_grid = {
@@ -113,17 +114,16 @@ def hyperparameter_tuning(X, Y, clf, model_name):
             "min_samples_split": [2, 5, 10],
             "min_samples_leaf": [1, 2, 4],
             "max_features": ["sqrt", "log2", None],
-            
-            
+
         }
     elif (model_name == "RF"):
         param_grid = {
             "criterion": ["gini", "entropy"],
-            "max_depth": [3,5,7,10],
+            "max_depth": [3, 5, 7, 10],
             "min_samples_leaf": [1, 5, 10, 20, 50, 100],
-            "max_features": [ "sqrt", "log2"],
+            "max_features": ["sqrt", "log2"],
             "n_jobs": [-1]
-            
+
         }
     X_train, X_test, y_train, y_test = train_test_split(X,
 
@@ -140,24 +140,25 @@ def hyperparameter_tuning(X, Y, clf, model_name):
     best_model = grid_search.best_estimator_
     return best_model
 
-def train(model_name,x,y,ht=False, feature_selection=False):
+
+def train(model_name, x, y, ht=False, feature_selection=False):
     clf = Utilities.get_model(model_name)
-    scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
-       'precision' : make_scorer(precision_score, average = 'weighted'),
-       'recall' : make_scorer(recall_score, average = 'weighted'), 
-       'f1_score' : make_scorer(f1_score, average = 'weighted'),
-       'hamming_loss': make_scorer(hamming_loss),
-       'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
-       }
-    if(ht and (model_name == "DT" or model_name == "RF") ):
-        clf =  hyperparameter_tuning(x,y,clf,model_name)
+    scoring_dict = {'accuracy': make_scorer(accuracy_score),
+                    'precision': make_scorer(precision_score, average='weighted'),
+                    'recall': make_scorer(recall_score, average='weighted'),
+                    'f1_score': make_scorer(f1_score, average='weighted'),
+                    'hamming_loss': make_scorer(hamming_loss),
+                    'jaccard_score': make_scorer(jaccard_score, average='weighted'),
+                    }
+    if (ht and (model_name == "DT" or model_name == "RF")):
+        clf = hyperparameter_tuning(x, y, clf, model_name)
     #   I belive this will do feature selection in the Cross_validate?
     if feature_selection:
         clf = RFE(estimator=clf)
     #   clf.fit(x_train, y_train)
-    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
-    scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
-    
+    k_folds = KFold(n_splits=10, shuffle=True, random_state=42)
+    scores = cross_validate(clf, x, y, cv=k_folds, scoring=scoring_dict)
+
     print("================================================")
     print("\nThe testing set results are: ")
     print("Accuracy " + str(scores["test_accuracy"].mean()))
@@ -333,6 +334,7 @@ def dt_rf_runner():
     train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING RF FOR COMBINED ===============")
 
+
 def svm():
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
     dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
@@ -376,6 +378,8 @@ def svm():
     print("SVM class LC with FE")
     train("SVM", class_mld_lc_fe_x, class_mld_lc_fe_y)
     print("=============== ENDING SVM FOR COMBINED===============")
+
+
 def svm_ova():
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
     dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
@@ -420,6 +424,7 @@ def svm_ova():
     train("SVM_OVA", class_mld_lc_fe_x, class_mld_lc_fe_y)
     print("=============== ENDING SVM_OVA FOR COMBINED===============")
 
+
 def NB():
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
     dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
@@ -463,6 +468,8 @@ def NB():
     print("NB class LC with FE")
     train("NB", class_mld_lc_fe_x, class_mld_lc_fe_y)
     print("=============== ENDING NB FOR COMBINED===============")
+
+'''
 def nn_runner():
     #   regular
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
@@ -504,7 +511,52 @@ def nn_runner():
     print("NN 5")
     train("NN", class_mld_lc_fe_x, class_mld_lc_fe_y, True)
     print("=============== ENDING DT FOR COMBINED===============")
+   '''
 
+
+def nn_runner():
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+
+    method_mld_cc_fe_x, method_mld_cc_fe_y = label_chain(dp_lm_fe, dp_fe_fe)
+    method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
+    class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+    #   LC
+    method_mld_lc_fe_x, method_mld_lc_fe_y = label_combination(dp_lm_fe, dp_fe_fe, "CART")
+    method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+    class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+    class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+
+    print("=============== STARTING Neural Network for BASE ===============")
+    print("Neural Network god class no FE")
+    train("NN", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    print("Neural Network data class no FE")
+    train("NN", dp_dc_no_fe.value_columns, dp_dc_no_fe.y)
+    print("Neural Network long method no FE")
+    train("NN", dp_lm_no_fe.value_columns, dp_lm_no_fe.y)
+    print("Neural Network feature envy no FE")
+    train("NN", dp_fe_no_fe.value_columns, dp_fe_no_fe.y)
+    print("=============== ENDING Neural Network for BASE ===============")
+
+    print("=============== STARTING Neural Network FOR COMBINED===============")
+    print("Neural Network method CC no FE")
+    train("NN", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    print("Neural Network method LC no FE")
+    train("NN", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    print("Neural Network class CC no FE")
+    train("NN", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    print("Neural Network class LC no FE")
+    train("NN", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    print("Neural Network class LC with FE")
+    train("NN", class_mld_lc_fe_x, class_mld_lc_fe_y)
+    print("=============== ENDING Neural Network FOR COMBINED===============")
 
 
 # Press the green button in the gutter to run the script.
@@ -514,10 +566,9 @@ if __name__ == '__main__':
     # method_mld_lc_x, method_mld_lc_y, class_mld_lc_x, class_mld_lc_y = simple_processor_example("Label Combination", dump=True)
     # print(class_mld_lc_y)
     # train("RF", class_mld_lc_x, class_mld_lc_y, False)
-    # nn_runner()
+    nn_runner()
     # svm()
-    NB()
+    # NB()
     # svm_ova()
-
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
