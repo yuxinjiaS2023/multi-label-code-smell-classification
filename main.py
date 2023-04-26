@@ -12,6 +12,7 @@ from sklearn.feature_selection import RFE
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, make_scorer, \
     hamming_loss, jaccard_score
 from sklearn.neural_network import MLPClassifier
+from skmultilearn.problem_transform import BinaryRelevance
 
 
 def print_hi(name):
@@ -142,33 +143,64 @@ def hyperparameter_tuning(X, Y, clf, model_name):
     best_model = grid_search.best_estimator_
     return best_model
 
-def train(model_name,x,y,ht=False, feature_selection=False):
+def train(model_name,x,y,ht=False, feature_selection=False, br=False, ml=False):
     clf = Utilities.get_model(model_name)
-    scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
-       'precision' : make_scorer(precision_score, average = 'weighted'),
-       'recall' : make_scorer(recall_score, average = 'weighted'), 
-       'f1_score' : make_scorer(f1_score, average = 'weighted'),
-       'hamming_loss': make_scorer(hamming_loss),
-       'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
-       }
+    if not ml:
+        scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
+        'precision' : make_scorer(precision_score, average = 'weighted'),
+        'recall' : make_scorer(recall_score, average = 'weighted'), 
+        'f1_score' : make_scorer(f1_score, average = 'weighted'),
+        'hamming_loss': make_scorer(hamming_loss),
+        'jaccard_score': make_scorer(jaccard_score, average = 'macro'),
+        }
+    else:
+        scoring_dict =  {'accuracy' : make_scorer(accuracy_score), 
+        'precision' : make_scorer(precision_score, average = 'weighted'),
+        'recall' : make_scorer(recall_score, average = 'weighted'), 
+        'f1_score' : make_scorer(f1_score, average = 'weighted'),
+        'hamming_loss': make_scorer(hamming_loss),
+        'jaccard_score': make_scorer(jaccard_score, average = 'weighted'),
+        }
     if(ht and (model_name == "DT" or model_name == "RF") ):
         clf =  hyperparameter_tuning(x,y,clf,model_name)
     #   I belive this will do feature selection in the Cross_validate?
     if feature_selection:
         clf = RFE(estimator=clf)
     #   clf.fit(x_train, y_train)
-    k_folds = KFold(n_splits = 10, shuffle=True, random_state=42)
-    scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
-    
-    print("================================================")
-    print("\nThe testing set results are: ")
-    print("Accuracy " + str(scores["test_accuracy"].mean()))
-    print("F1_score " + str(scores["test_f1_score"].mean()))
-    print("Precision " + str(scores["test_precision"].mean()))
-    print("Recall " + str(scores["test_recall"].mean()))
-    print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
-    print("Jaccard Score " + str(scores["test_jaccard_score"].mean()))
-    print("================================================")
+    print("Y_SHAPE", y.shape)
+    #   BINARY RELEVANCE
+    if br:
+        parameters = [
+            {
+                'classifier': [clf],
+            },
+        ]
+        x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.15, random_state=42)
+        clf = GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy')
+        clf.fit(x_train, y_train)    
+        #   do not know exactly why cross_validate does not work with this
+        print("================================================")
+        print("\nThe testing set results are: ")
+        print("Accuracy " + str(accuracy_score(y_test, clf.predict(x_test))))
+        print("F1_score " + str(f1_score(y_test, clf.predict(x_test))))
+        print("Precision " + str(precision_score(y_test, clf.predict(x_test))))
+        print("Recall " + str(recall_score(y_test, clf.predict(x_test))))
+        print("Hamming Loss " + str(hamming_loss(y_test, clf.predict(x_test))))
+        print("Jaccard Score " + str(jaccard_score(y_test, clf.predict(x_test))))
+        print("================================================")
+    else:
+        k_folds = KFold(n_splits=10, shuffle=True, random_state=42)
+        scores = cross_validate(clf, x, y, cv = k_folds, scoring=scoring_dict)
+        print(scores)
+        print("================================================")
+        print("\nThe testing set results are: ")
+        print("Accuracy " + str(scores["test_accuracy"].mean()))
+        print("F1_score " + str(scores["test_f1_score"].mean()))
+        print("Precision " + str(scores["test_precision"].mean()))
+        print("Recall " + str(scores["test_recall"].mean()))
+        print("Hamming Loss " + str(scores["test_hamming_loss"].mean()))
+        print("Jaccard Score " + str(scores["test_jaccard_score"].mean()))
+        print("================================================")
 
     '''
     do not need this ???
@@ -251,6 +283,7 @@ def simple_processor_example(method, dump=False):
         method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = label_chain(dp_lm_no_fe, dp_fe_no_fe)
         class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
         class_mld_cc_fe_x, class_mld_cc_fe_y = label_chain(dp_gc_fe, dp_dc_fe)
+        print(class_mld_cc_fe_y)
         if dump:
             dump_arff_file(method_mld_cc_fe_x, method_mld_cc_fe_y, "method_mld_fe_cc.arff")
             dump_arff_file(class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, "class_mld__no_fe_cc.arff")
@@ -261,6 +294,7 @@ def simple_processor_example(method, dump=False):
         method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
         class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
         class_mld_lc_fe_x, class_mld_lc_fe_y = label_combination(dp_gc_fe, dp_dc_fe, "CART")
+        print(class_mld_lc_fe_y)
         if dump:
             dump_arff_file(method_mld_lc_fe_x, method_mld_lc_fe_y, "method_mld_fe_lc.arff")
             dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
@@ -294,6 +328,8 @@ def dt_rf_runner():
     #train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y,ht=False)
     #train("DT", dp_dc_no_fe.value_columns, dp_gc_no_fe.y,ht=True)
     
+    
+    
     print("=============== STARTING DT for BASE ===============")
     train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
     train("DT", dp_dc_no_fe.value_columns, dp_dc_no_fe.y)
@@ -312,31 +348,50 @@ def dt_rf_runner():
 
     print("=============== STARTING DT FOR COMBINED===============")
     print("DT 1")
-    train("DT", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    train("DT", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y, ml=True)
     print("DT 2")
-    train("DT", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    train("DT", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, ml=True)
     print("DT 3")
-    train("DT", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    train("DT", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, ml=True)
     print("DT 4")
-    train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, ml=True)
     print("DT 5")
-    train("DT", class_mld_lc_fe_x, class_mld_lc_fe_y, feature_selection=True)
+    train("DT", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, feature_selection=True, ml=True)
     print("=============== ENDING DT FOR COMBINED===============")
 
     print("=============== STARTING RF FOR COMBINED===============")
     print("RF 1")
-    train("RF", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y)
+    train("RF", method_mld_cc_no_fe_x, method_mld_cc_no_fe_y, ml=True)
     print("RF 2")
-    train("RF", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y)
+    train("RF", method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, ml=True)
     print("RF 3")
-    train("RF", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y)
+    train("RF", class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, ml=True)
     print("RF 4")
-    train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y)
+    train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, ml=True)
     print("RF 5")
     
-    train("RF", class_mld_lc_fe_x, class_mld_lc_fe_y, feature_selection=True)
+    train("RF", class_mld_lc_no_fe_x, class_mld_lc_no_fe_y, feature_selection=True, ml=True)
     print("=============== ENDING RF FOR COMBINED ===============")
     
+    
+    
+    '''
+    print("=============== BINARY RELEVANCE ===============")
+    #print(dp_gc_no_fe.value_columns, dp_dc_no_fe.value_columns)
+    #bn_c_x = np.vstack((dp_gc_no_fe.value_columns,dp_dc_no_fe.value_columns))
+    bn_c_x = np.concatenate((dp_gc_no_fe.value_columns,dp_dc_no_fe.value_columns))
+    bn_c_y = np.concatenate((dp_gc_no_fe.y,dp_dc_no_fe.y))
+    #bn_m_x = np.vstack((dp_lm_no_fe.value_columns,dp_fe_no_fe.value_columns))
+    bn_m_x = np.concatenate((dp_lm_no_fe.value_columns,dp_fe_no_fe.value_columns))
+    bn_m_y = np.concatenate((dp_lm_no_fe.y,dp_fe_no_fe.y))
+    print(dp_gc_no_fe.value_columns.shape,dp_gc_no_fe.y.shape)
+    print(bn_c_x.shape, bn_c_y.shape, bn_m_x.shape,bn_m_y.shape)
+    #np.concatenate(dp_gc_no_fe.value_columns, dp_dc_no_fe.value_columns)
+    #train("DT", dp_gc_no_fe.value_columns, dp_gc_no_fe.y)
+    #train("DT", bn_c_x, bn_c_y, br=True)
+    #train("RF", bn_m_x, bn_m_y, br=True)
+    print("=============== ENDING BINARY RELEVANCE ===============")
+    '''
 
 def svm():
     dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
@@ -524,6 +579,27 @@ if __name__ == '__main__':
     #   NB()
     # svm_ova()
     dt_rf_runner()
+    '''
+    dp_gc_no_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=False)
+    dp_gc_fe = data_processor.DataProcessor("god-class.csv", class_level=True, feature_selection=True)
+    dp_dc_no_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=False)
+    dp_dc_fe = data_processor.DataProcessor("data-class.csv", class_level=True, feature_selection=True)
+    dp_lm_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=True)
+    dp_lm_no_fe = data_processor.DataProcessor("long-method.csv", class_level=False, feature_selection=False)
+    dp_fe_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=True)
+    dp_fe_no_fe = data_processor.DataProcessor("feature-envy.csv", class_level=False, feature_selection=False)
+    cc_x, cc_y = label_chain(dp_gc_no_fe, dp_dc_no_fe)
+    x_train, x_test, y_train, y_test = train_test_split(cc_x,cc_y, test_size=0.15, random_state=42)
+    from sklearn.tree import DecisionTreeClassifier
+    clf = DecisionTreeClassifier().fit(x_train, y_train)
+    print("Accuracy " + str(accuracy_score(y_test, clf.predict(x_test))))
+    print("F1_score " + str(f1_score(y_test, clf.predict(x_test))))
+    print("Precision " + str(precision_score(y_test, clf.predict(x_test))))
+    print("Recall " + str(recall_score(y_test, clf.predict(x_test))))
+    print("Hamming Loss " + str(hamming_loss(y_test, clf.predict(x_test))))
+    print("Jaccard Score " + str(jaccard_score(y_test, clf.predict(x_test))))
+    #simple_processor_example("Label Combination")
+    '''
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
