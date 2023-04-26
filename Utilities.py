@@ -17,6 +17,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
+
 # from weka.core.converters import Loader
 # from weka.core.dataset import Instances
 # from sklweka.classifiers import WekaEstimator
@@ -27,8 +28,8 @@ SELECTKBEST = 10
 
 CLASSLEVELLABEL = ["IDType", "project", "package", "complextype"]
 METHODLEVELLABEL = ["IDMethod", "project", "package", "complextype", "method"]
-CLASSLEVELLABEL_INDEX = [0,1,2,3]
-METHODLEVELLABEL_INDEX = [0,1,2,3,4]
+CLASSLEVELLABEL_INDEX = [0, 1, 2, 3]
+METHODLEVELLABEL_INDEX = [0, 1, 2, 3, 4]
 
 
 def get_model(model):
@@ -67,8 +68,7 @@ def get_model(model):
     elif model == "NB":
         return GaussianNB()
     elif model == "NN":
-        return MLPClassifier(hidden_layer_sizes=(100, 50), activation='relu', solver='adam', max_iter=500)
+        return MLPClassifier(hidden_layer_sizes=(100, 50, 25), max_iter=1000)
     else:
         print("such model does not exist")
         exit()
-
