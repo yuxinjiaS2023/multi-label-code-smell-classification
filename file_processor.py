@@ -1,7 +1,7 @@
 import arff
 import numpy as np
 import data_processor
-from python_model import Py_model
+from python_model import Py_Model
 
 class File_Processor:
 
@@ -63,20 +63,20 @@ class File_Processor:
         # dp.value_columns vs dp.label_columns
         # dp.y stores the target
         if method == "Classifier Chain":
-            method_mld_cc_fe_x, method_mld_cc_fe_y = Py_model.label_chain(dp_lm_fe, dp_fe_fe)
-            method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = Py_model.label_chain(dp_lm_no_fe, dp_fe_no_fe)
-            class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = Py_model.label_chain(dp_gc_no_fe, dp_dc_no_fe)
-            class_mld_cc_fe_x, class_mld_cc_fe_y = Py_model.label_chain(dp_gc_fe, dp_dc_fe)
+            method_mld_cc_fe_x, method_mld_cc_fe_y = Py_Model.label_chain(dp_lm_fe, dp_fe_fe)
+            method_mld_cc_no_fe_x, method_mld_cc_no_fe_y = Py_Model.label_chain(dp_lm_no_fe, dp_fe_no_fe)
+            class_mld_cc_no_fe_x, class_mld_cc_no_fe_y = Py_Model.label_chain(dp_gc_no_fe, dp_dc_no_fe)
+            class_mld_cc_fe_x, class_mld_cc_fe_y = Py_Model.label_chain(dp_gc_fe, dp_dc_fe)
             if dump:
                 self.dump_arff_file(method_mld_cc_fe_x, method_mld_cc_fe_y, "method_mld_fe_cc.arff")
                 self.dump_arff_file(class_mld_cc_no_fe_x, class_mld_cc_no_fe_y, "class_mld__no_fe_cc.arff")
                 self.self.dump_arff_file(class_mld_cc_fe_x, class_mld_cc_fe_y, "class_mld_fe_cc.arff")
                 self.dump_arff_file(method_mld_cc_no_fe_x, method_mld_cc_no_fe_y, "method_mld_no_fe_cc.arff")
         elif method == "Label Combination":
-            method_mld_lc_fe_x, method_mld_lc_fe_y = Py_model.label_combination(dp_lm_fe, dp_fe_fe, "CART")
-            method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = Py_model.label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
-            class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = Py_model.label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
-            class_mld_lc_fe_x, class_mld_lc_fe_y = Py_model.label_combination(dp_gc_fe, dp_dc_fe, "CART")
+            method_mld_lc_fe_x, method_mld_lc_fe_y = Py_Model.label_combination(dp_lm_fe, dp_fe_fe, "CART")
+            method_mld_lc_no_fe_x, method_mld_lc_no_fe_y = Py_Model.label_combination(dp_lm_no_fe, dp_fe_no_fe, "CART")
+            class_mld_lc_no_fe_x, class_mld_lc_no_fe_y = Py_Model.label_combination(dp_gc_no_fe, dp_dc_no_fe, "CART")
+            class_mld_lc_fe_x, class_mld_lc_fe_y = Py_Model.label_combination(dp_gc_fe, dp_dc_fe, "CART")
             if dump:
                 self.dump_arff_file(method_mld_lc_fe_x, method_mld_lc_fe_y, "method_mld_fe_lc.arff")
                 self.dump_arff_file(method_mld_lc_no_fe_x, method_mld_lc_no_fe_y, "method_mld_no_fe_lc.arff")
