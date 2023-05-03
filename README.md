@@ -7,7 +7,7 @@ Or
 `pip install requirements.txt`
 # How to RUN Python models?
 We recommend using [JetBrains PyCharm ](https://www.jetbrains.com/pycharm/)  
-In pycharm, run with green button on `main.py`. Input the model name you want to use, and press `enter`. Model would then be trained and print the results.
+In pycharm, run with the green button on `main.py`. Input the model name you want to use, and then press `enter`. Model would then be trained and print the results.
 
 # Version Log
 May 1, 2023
