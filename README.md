@@ -27,5 +27,5 @@ Apr 15, 2023
 - Add J48 Model implemented in Java
 
 Apr 7, 2023
-Currently has a basic preprocessing tool located in data_processor.py, check the simple_processer_example() in main for more details.
-The data_processor uses median to fill NaN values and uses selectKBest to feature select.
+- Currently has a basic preprocessing tool located in data_processor.py, check the simple_processer_example() in main for more details.
+- The data_processor uses median to fill NaN values and uses selectKBest to feature select.
