@@ -14,7 +14,8 @@ May 1, 2023
 - Refactory code structure, add simple interface to use.
 
 Apr 25, 2023
-- Add SVM and NB
+- Add SVM model using both One-Vs-One and One-vs-All strategies.
+- Add NB model.
 
 Apr 24, 2023
 - Fix arff and add Jaccard index in J48
