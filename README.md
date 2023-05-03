@@ -22,7 +22,7 @@ Apr 24, 2023
 
 Apr 23, 2023
 - Add DT and RF
-- 
+
 Apr 15, 2023
 - Add J48 Model implemented in Java
 
