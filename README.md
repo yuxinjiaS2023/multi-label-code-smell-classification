@@ -9,6 +9,9 @@ Or
 We recommend using [JetBrains PyCharm ](https://www.jetbrains.com/pycharm/)  
 In pycharm, run with the green button on `main.py`. Input the model name you want to use, and then press `enter`. Model would then be trained and print the results.
 
+# Running Java code
+Java code is located in /J48-Classifier/src folder. Run the file J48Classifier.java, it should give you relevant result of a specific arff file. You can change the file name passed into function evaluateFile() inside the main function, to experiment on different arff files located in /data/exported/ folder.
+
 # Version Log
 May 1, 2023
 - Refactory code structure, add simple interface to use.
